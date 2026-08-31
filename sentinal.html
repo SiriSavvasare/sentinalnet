@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SentinelNet — Campus Scam Detection Console</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="sentinal.css">
+</head>
+<body>
+
+<div class="header">
+  <h1>◆ SENTINEL<span>NET</span></h1>
+  <div class="header-status">
+    <div class="header-badge">DATABRICKS HACKATHON DEMO</div>
+    <div style="display:flex;align-items:center;gap:6px"><div class="status-dot"></div> Pipeline Active</div>
+    <span class="mono" id="clock"></span>
+  </div>
+</div>
+
+<div class="main">
+  <!-- LEFT -->
+  <div class="left">
+    <div class="left-header">
+      Incoming Signals
+      <span class="signal-count" id="signalCount">0</span>
+    </div>
+    <div class="signals-list" id="signalsList"></div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center" id="centerPanel">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">◇</div>
+      <div class="empty-title">Select a Signal</div>
+      <div class="empty-sub">Click any incoming posting from the left panel to run it through the detection pipeline.</div>
+    </div>
+    <div id="activeView" style="display:none">
+      <!-- Pipeline -->
+      <div class="pipeline" id="pipeline">
+        <div class="pipeline-node"><div class="node-circle" id="n1">1</div><div class="node-label" id="l1">Ingestion</div></div>
+        <div class="pipeline-connector" id="c1"></div>
+        <div class="pipeline-node"><div class="node-circle" id="n2">2</div><div class="node-label" id="l2">Multi-Agent Matrix</div></div>
+        <div class="pipeline-connector" id="c2"></div>
+        <div class="pipeline-node"><div class="node-circle" id="n3">3</div><div class="node-label" id="l3">Genie Precedent Loop</div></div>
+        <div class="pipeline-connector" id="c3"></div>
+        <div class="pipeline-node"><div class="node-circle" id="n4">4</div><div class="node-label" id="l4">Risk Fusion</div></div>
+        <div class="pipeline-connector" id="c4"></div>
+        <div class="pipeline-node"><div class="node-circle" id="n5">5</div><div class="node-label" id="l5">Command UI</div></div>
+      </div>
+      <!-- Results -->
+      <div class="results-panel" id="resultsPanel" style="display:none">
+        <div class="score-header">
+          <div class="score-title">Composite Risk Score</div>
+          <div class="dial-container">
+            <div class="dial">
+              <svg width="140" height="140" viewBox="0 0 140 140">
+                <circle class="dial-track" cx="70" cy="70" r="60"/>
+                <circle class="dial-fill" id="dialFill" cx="70" cy="70" r="60" stroke-dasharray="377" stroke-dashoffset="377"/>
+              </svg>
+              <div class="dial-value">
+                <div class="dial-number mono" id="dialNumber">0</div>
+                <div class="dial-label">Risk</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="subscores" id="subscores"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="right-header">Explainable Breakdown</div>
+    <div class="explain-list" id="explainList">
+      <div class="empty-state" style="height:100%">
+        <div class="empty-title" style="font-size:14px">No Analysis Yet</div>
+        <div class="empty-sub" style="font-size:12px">Select a signal to see AI-generated reasoning behind the risk score.</div>
+      </div>
+    </div>
+    <div class="verdict-box" id="verdictBox" style="display:none">
+      <div class="verdict-label">Verdict</div>
+      <div class="verdict-text mono" id="verdictText"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <div class="genie-container">
+    <div class="genie-row">
+      <input class="genie-input" id="genieInput" placeholder="Ask Genie: e.g. 'Show all offers with risk > 80'…"/>
+      <button class="genie-btn" onclick="runGenieQuery()">Run</button>
+    </div>
+    <div class="chips">
+      <div class="chip" onclick="genieChip(this)">Show all offers with risk score &gt; 80</div>
+      <div class="chip" onclick="genieChip(this)">Find postings mentioning crypto or gift cards</div>
+      <div class="chip" onclick="genieChip(this)">List low-risk verified opportunities</div>
+      <div class="chip" onclick="genieChip(this)">Compare average risk by source platform</div>
+    </div>
+  </div>
+  <div class="results-table-wrap" id="tableWrap" style="display:none">
+    <table class="results-table">
+      <thead><tr><th>Title</th><th>Source</th><th>Risk</th><th>Status</th></tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="sentinal.js" defer></script>
+</body>
+</html>
