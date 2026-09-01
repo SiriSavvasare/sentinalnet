@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SentinelNet — Campus Scam & Threat Intelligence Console</title>
+  <title>SentinelNet — Databricks Genie Autonomous Safety Space</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -96,126 +96,67 @@
       font-weight: 600;
     }
 
-    /* PAGE VIEW CONTAINERS */
+    /* MAIN VIEW */
     .page-view { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
     .page-view::-webkit-scrollbar { width: 5px; }
     .page-view::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-    /* PAGE 1: OVERVIEW */
-    .hero-container {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 32px;
-      padding: 40px;
-      align-items: center;
-      max-width: 1200px;
-      margin: 0 auto;
-      width: 100%;
+    /* PAGE 1: LIVE INGRESS CONSOLE & CSV SCANNER */
+    .main { display: grid; grid-template-columns: 340px 1fr 340px; flex: 1; overflow: hidden; height: 100%; }
+    .left { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; background: #0c121e; }
+    
+    /* CSV Upload Box */
+    .csv-upload-box {
+      padding: 12px 14px;
+      background: rgba(0,0,0,0.3);
+      border-bottom: 1px solid var(--border);
     }
-    .hero-tag {
+    .upload-btn-row { display: flex; gap: 8px; }
+    .file-input-btn {
+      flex: 1;
+      background: var(--panel);
+      border: 1px dashed var(--cyan);
+      color: var(--cyan);
+      padding: 8px 10px;
+      border-radius: 6px;
       font-size: 11px;
-      color: var(--neon-lime);
-      background: var(--neon-bg);
-      border: 1px solid rgba(163, 230, 53, 0.3);
-      padding: 4px 10px;
-      border-radius: 12px;
-      display: inline-block;
-      margin-bottom: 12px;
       font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      display: block;
+      transition: all 0.2s;
     }
-    .hero-title { font-size: 30px; font-weight: 700; color: var(--text-bright); line-height: 1.25; margin-bottom: 12px; }
-    .hero-desc { font-size: 13.5px; color: var(--text-dim); line-height: 1.6; margin-bottom: 24px; max-width: 520px; }
-    .hero-actions { display: flex; gap: 12px; }
-    .btn-primary {
+    .file-input-btn:hover { background: var(--cyan-bg); }
+    .simulate-btn {
       background: var(--neon-lime);
       color: #0B0F17;
       border: none;
+      padding: 8px 12px;
       border-radius: 6px;
-      padding: 10px 22px;
-      font-size: 12.5px;
+      font-size: 11px;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
     }
-    .btn-primary:hover { box-shadow: 0 0 16px rgba(163, 230, 53, 0.5); transform: translateY(-1px); }
-    .btn-secondary {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 6px;
-      padding: 10px 18px;
-      font-size: 12.5px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-secondary:hover { border-color: var(--cyan); color: var(--cyan); }
+    .simulate-btn:hover { box-shadow: 0 0 10px rgba(163, 230, 53, 0.4); }
 
-    /* Visual Radar HUD */
-    .visual-card {
-      background: radial-gradient(circle, rgba(163, 230, 53, 0.05) 0%, rgba(17, 24, 39, 0.95) 70%);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      height: 260px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .radar-hud { width: 200px; height: 200px; position: relative; border-radius: 50%; border: 1px solid rgba(163, 230, 53, 0.3); display: flex; align-items: center; justify-content: center; }
-    .radar-circle { position: absolute; border-radius: 50%; border: 1px dashed rgba(163, 230, 53, 0.2); }
-    .rc1 { width: 140px; height: 140px; }
-    .rc2 { width: 80px; height: 80px; }
-    .radar-sweep {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      border-radius: 50%;
-      background: conic-gradient(from 0deg, rgba(163, 230, 53, 0.3) 0deg, transparent 60deg, transparent 360deg);
-      animation: sweep 4s linear infinite;
-    }
-    @keyframes sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    .radar-center { z-index: 2; font-size: 10px; text-align: center; font-weight: 700; }
-    .radar-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--red); box-shadow: 0 0 8px var(--red); animation: pulse 1.5s infinite; }
-    .dot1 { top: 35px; right: 45px; }
-    .dot2 { bottom: 50px; left: 40px; background: var(--amber); box-shadow: 0 0 8px var(--amber); }
-
-    /* Stats Grid */
-    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 1200px; margin: 0 auto 32px; padding: 0 40px; width: 100%; }
-    .stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
-    .stat-num { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
-    .stat-label { font-size: 11.5px; font-weight: 600; color: var(--text-bright); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
-    .stat-sub { font-size: 11px; color: var(--text-dim); line-height: 1.4; }
-
-    /* Threat Stages Grid */
-    .threat-stages-section { max-width: 1200px; margin: 0 auto 40px; padding: 0 40px; width: 100%; }
-    .section-title { font-size: 14px; font-weight: 700; color: var(--text-bright); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
-    .stages-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    .stage-card { background: #0E1522; border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
-    .stage-badge { font-size: 9px; font-weight: 700; background: var(--neon-bg); color: var(--neon-lime); border: 1px solid rgba(163,230,53,0.3); padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 8px; }
-    .stage-name { font-size: 12.5px; font-weight: 600; color: var(--text-bright); margin-bottom: 4px; }
-    .stage-desc { font-size: 11px; color: var(--text-dim); line-height: 1.45; }
-
-    /* PAGE 2: INGRESS CONSOLE */
-    .main { display: grid; grid-template-columns: 320px 1fr 340px; flex: 1; overflow: hidden; height: 100%; }
-    .left { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; background: #0c121e; }
-    .left-header { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 11.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; display: flex; justify-content: space-between; align-items: center; }
+    .left-header { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; display: flex; justify-content: space-between; align-items: center; }
     .signal-count { background: var(--neon-bg); border: 1px solid rgba(163, 230, 53, 0.3); color: var(--neon-lime); padding: 2px 8px; border-radius: 12px; font-size: 10.5px; font-weight: 600; }
     .signals-list { flex: 1; overflow-y: auto; padding: 8px; }
     .signals-list::-webkit-scrollbar { width: 4px; }
     .signals-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-    .signal-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s ease; }
+    .signal-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s ease; }
     .signal-card:hover { border-color: var(--cyan); background: var(--panel-hover); transform: translateY(-1px); }
     .signal-card.active { border-color: var(--neon-lime); background: var(--panel-hover); box-shadow: 0 0 12px rgba(163, 230, 53, 0.2); }
     .signal-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .signal-source { font-size: 10px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; }
     .signal-time { font-size: 10.5px; color: var(--text-dim); }
-    .signal-title { font-size: 12.5px; font-weight: 600; color: var(--text-bright); margin-bottom: 4px; line-height: 1.35; }
+    .signal-title { font-size: 12px; font-weight: 600; color: var(--text-bright); margin-bottom: 4px; line-height: 1.35; }
     .signal-snippet { font-size: 11px; color: var(--text-dim); line-height: 1.4; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
-    .signal-footer { display: flex; justify-content: flex-end; align-items: center; margin-top: 8px; }
+    .signal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
 
-    .risk-badge { font-size: 9.5px; font-weight: 700; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; font-family: 'IBM Plex Mono', monospace; }
+    .risk-badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-family: 'IBM Plex Mono', monospace; }
     .risk-queued { background: rgba(148, 163, 184, 0.12); color: var(--text-dim); border: 1px solid rgba(148, 163, 184, 0.2); }
     .risk-low { background: var(--neon-bg); color: var(--neon-lime); border: 1px solid rgba(163, 230, 53, 0.3); }
     .risk-medium { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.3); }
@@ -282,16 +223,16 @@
     .btn-clear { background: var(--panel-hover); border: 1px solid var(--border); color: var(--text); }
     .btn-clear:hover { border-color: var(--neon-lime); color: var(--neon-lime); }
 
-    /* PAGE 3: GENIE SPACE */
-    .genie-full-space { max-width: 1100px; margin: 24px auto; padding: 0 32px; width: 100%; }
-    .genie-header-banner { text-align: center; margin-bottom: 20px; }
-    .genie-banner-badge { font-size: 10.5px; color: var(--cyan); background: var(--cyan-bg); border: 1px solid rgba(56,189,248,0.3); padding: 3px 10px; border-radius: 12px; display: inline-block; margin-bottom: 8px; font-weight: 600; }
+    /* PAGE 2: GENIE SPACE */
+    .genie-full-space { max-width: 1100px; margin: 20px auto; padding: 0 24px; width: 100%; }
+    .genie-header-banner { text-align: center; margin-bottom: 18px; }
+    .genie-banner-badge { font-size: 10.5px; color: var(--cyan); background: var(--cyan-bg); border: 1px solid rgba(56,189,248,0.3); padding: 3px 10px; border-radius: 12px; display: inline-block; margin-bottom: 6px; font-weight: 600; }
     .genie-header-banner h2 { font-size: 22px; font-weight: 700; color: var(--text-bright); margin-bottom: 4px; }
     .genie-header-banner p { font-size: 12.5px; color: var(--text-dim); }
 
     .genie-chat-box { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
     .genie-input-wrapper { display: flex; gap: 8px; }
-    .genie-input-full { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: #fff; font-size: 12.5px; outline: none; }
+    .genie-input-full { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: #fff; font-size: 12.5px; outline: none; font-family: 'IBM Plex Sans', sans-serif; }
     .genie-input-full:focus { border-color: var(--neon-lime); }
     .genie-btn-full { background: var(--neon-lime); color: #0B0F17; border: none; border-radius: 6px; padding: 0 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
 
@@ -316,96 +257,32 @@
   <div class="header-left">
     <h1>◆ SENTINEL<span>NET</span></h1>
     <nav class="nav-tabs">
-      <button class="nav-tab active" onclick="switchPage('landingPage', this)">Overview</button>
-      <button class="nav-tab" onclick="switchPage('consolePage', this)">Live Ingress Engine</button>
-      <button class="nav-tab" onclick="switchPage('geniePage', this)">Databricks Genie Space</button>
+      <button class="nav-tab active" onclick="switchPage('consolePage', this)">Live Ingress Scanner & CSV Pipeline</button>
+      <button class="nav-tab" onclick="switchPage('geniePage', this)">Databricks Genie Space (Main AI/BI)</button>
     </nav>
   </div>
   <div class="header-status">
-    <div class="header-badge">DATABRICKS HACKATHON 2026</div>
-    <div class="status-pill"><div class="status-dot"></div> Spark Ingress Active</div>
+    <div class="header-badge">DATABRICKS GENIE SPACE DEMO</div>
+    <div class="status-pill"><div class="status-dot"></div> Spark Pipeline Active</div>
     <span class="mono clock" id="clock">--:--:--</span>
   </div>
 </div>
 
-<!-- ================= PAGE 1: OVERVIEW & RADAR HUB ================= -->
-<div class="page-view" id="landingPage">
-  <div class="hero-container">
-    <div class="hero-content">
-      <div class="hero-tag mono">PRE-INCIDENT DEFENSE PLATFORM</div>
-      <h2 class="hero-title">Genie-Powered Campus Safety & Exploitation Defense</h2>
-      <p class="hero-desc">Autonomous telemetry pipelines parsing linguistic intent, relational network clusters, and Lakehouse historical precedents before damage occurs[cite: 1].</p>
-      <div class="hero-actions">
-        <button class="btn-primary" onclick="switchPage('consolePage', document.querySelectorAll('.nav-tab')[1])">Launch Ingress Console →</button>
-        <button class="btn-secondary" onclick="switchPage('geniePage', document.querySelectorAll('.nav-tab')[2])">Open Genie Space</button>
-      </div>
-    </div>
-    
-    <div class="hero-visual">
-      <div class="visual-card">
-        <div class="radar-hud">
-          <div class="radar-circle rc1"></div>
-          <div class="radar-circle rc2"></div>
-          <div class="radar-sweep"></div>
-          <div class="radar-dot dot1"></div>
-          <div class="radar-dot dot2"></div>
-          <div class="radar-center mono">SENTINEL_AI<br><span style="color:var(--neon-lime);">STREAMING</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-num mono" style="color:var(--red);">~24h</div>
-      <div class="stat-label">Avg Relocation Window</div>
-      <div class="stat-sub">Victims are often moved within 24 hours of initial digital contact[cite: 1, 2].</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num mono" style="color:var(--amber);">&lt; 5%</div>
-      <div class="stat-label">Proactive Moderation</div>
-      <div class="stat-sub">Less than 5% of digital predatory postings are flagged proactively[cite: 1, 2].</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num mono" style="color:var(--cyan);">Days → Weeks</div>
-      <div class="stat-label">Report-to-Action Latency</div>
-      <div class="stat-sub">Manual investigation latency leaves active traps online for too long[cite: 1, 2].</div>
-    </div>
-  </div>
-
-  <div class="threat-stages-section">
-    <div class="section-title">Anatomy of a Campus Scam[cite: 1]</div>
-    <div class="stages-grid">
-      <div class="stage-card">
-        <div class="stage-badge mono">STAGE 01</div>
-        <div class="stage-name">The Bait</div>
-        <div class="stage-desc">"Urgent! High-paying luxury catalog model. ₹25k/day. No experience."[cite: 1]</div>
-      </div>
-      <div class="stage-card">
-        <div class="stage-badge mono">STAGE 02</div>
-        <div class="stage-name">The Pivot</div>
-        <div class="stage-desc">Direct jump off-platform to private WhatsApp or Telegram within minutes[cite: 1].</div>
-      </div>
-      <div class="stage-card">
-        <div class="stage-badge mono">STAGE 03</div>
-        <div class="stage-name">The Compromise</div>
-        <div class="stage-desc">Recruiter requests ID copies, private media, or upfront registration fees[cite: 1].</div>
-      </div>
-      <div class="stage-card">
-        <div class="stage-badge mono" style="background:var(--red-bg);color:var(--red);border-color:rgba(239,68,68,0.3);">STAGE 04</div>
-        <div class="stage-name" style="color:var(--red);">The Meet</div>
-        <div class="stage-desc">In-person meeting at unlisted venue or private address. Physical compromise[cite: 1].</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ================= PAGE 2: LIVE INGRESS CONSOLE ================= -->
-<div class="page-view" id="consolePage" style="display:none;">
+<!-- ================= PAGE 1: LIVE INGRESS SCANNER & CSV PIPELINE ================= -->
+<div class="page-view" id="consolePage">
   <div class="main">
     <div class="left">
+      <!-- LIVE CSV SCANNER / UPLOADER -->
+      <div class="csv-upload-box">
+        <div class="upload-btn-row">
+          <label class="file-input-btn" for="csvFileInput">📁 Upload CSV Stream</label>
+          <input type="file" id="csvFileInput" accept=".csv" style="display:none" onchange="handleCSVUpload(event)">
+          <button class="simulate-btn" onclick="generateSimulatedStream()">+ Inject Stream</button>
+        </div>
+      </div>
+
       <div class="left-header">
-        <span>Incoming Threat Stream</span>
+        <span>Ingested Stream</span>
         <span class="signal-count" id="signalCount">0</span>
       </div>
       <div class="signals-list" id="signalsList"></div>
@@ -413,9 +290,9 @@
 
     <div class="center" id="centerPanel">
       <div class="empty-state" id="emptyState">
-        <div class="empty-icon">🛡️</div>
+        <div class="empty-icon">⚡</div>
         <div class="empty-title">Select an Ingress Signal</div>
-        <div class="empty-sub">Click any incoming posting from the stream to trigger real-time Mosaic AI parsing & Genie precedent retrieval[cite: 1].</div>
+        <div class="empty-sub">Click any incoming row to trigger real-time Mosaic AI parsing & Databricks Genie historical precedent retrieval.</div>
       </div>
 
       <div id="activeView" style="display:none">
@@ -457,7 +334,7 @@
     </div>
 
     <div class="right">
-      <div class="right-header">Explainable Telemetry[cite: 1]</div>
+      <div class="right-header">Explainable Telemetry</div>
       <div class="explain-list" id="explainList">
         <div class="empty-state" style="height:100%">
           <div class="empty-title" style="font-size:13px">Awaiting Active Inference</div>
@@ -466,7 +343,7 @@
       </div>
 
       <div class="verdict-box" id="verdictBox" style="display:none">
-        <div class="verdict-label">Administrative Action Triage[cite: 1]</div>
+        <div class="verdict-label">Administrative Action Triage</div>
         <div class="verdict-text mono" id="verdictText"></div>
         <div class="action-btn-row">
           <button class="action-btn btn-escalate" onclick="escalateAlert()">🚨 Escalate to Dean</button>
@@ -477,43 +354,44 @@
   </div>
 </div>
 
-<!-- ================= PAGE 3: DATABRICKS GENIE SPACE ================= -->
+<!-- ================= PAGE 2: DATABRICKS GENIE SPACE ================= -->
 <div class="page-view" id="geniePage" style="display:none;">
   <div class="genie-full-space">
     <div class="genie-header-banner">
-      <div class="genie-banner-badge mono">DATABRICKS AI/BI GENIE SPACE</div>
-      <h2>Conversational Lakehouse Intelligence</h2>
-      <p>Natural Language SQL querying directly on top of Delta Lake threat logs and historical precedent tables[cite: 1].</p>
+      <div class="genie-banner-badge mono">CORE DATABRICKS AI/BI ENGINE</div>
+      <h2>Databricks Genie Conversational Space</h2>
+      <p>Natural Language SQL querying directly over live Lakehouse threat telemetry and historical scam precedent tables.</p>
     </div>
 
     <div class="genie-chat-box">
       <div class="genie-input-wrapper">
-        <input class="genie-input-full" id="genieInputFull" placeholder="Ask Genie (e.g., 'Show all offers with risk > 80 targeting our campus')..."/>
+        <input class="genie-input-full" id="genieInputFull" placeholder="Ask Databricks Genie: (e.g., 'Show all offers with threat score > 80 targeting our campus')..."/>
         <button class="genie-btn-full" onclick="runGeniePageQuery()">Run Query</button>
       </div>
       <div class="chips">
-        <div class="chip" onclick="genieFullChip(this)">Show all offers with risk score &gt; 80</div>
-        <div class="chip" onclick="genieFullChip(this)">Find postings mentioning crypto or upfront fees</div>
+        <div class="chip" onclick="genieFullChip(this)">Show all offers with threat score &gt; 80</div>
+        <div class="chip" onclick="genieFullChip(this)">Find postings mentioning crypto, UPI, or upfront fees</div>
         <div class="chip" onclick="genieFullChip(this)">List low-risk verified campus opportunities</div>
         <div class="chip" onclick="genieFullChip(this)">Query confirmed Lakehouse scam precedents</div>
       </div>
     </div>
 
     <div class="sql-preview-box mono" id="sqlPreview" style="display:none;">
-      <span style="color:var(--text-dim);">-- Generated Databricks SQL[cite: 1]:</span><br>
-      <span style="color:var(--cyan);" id="sqlCode">SELECT * FROM threat_telemetry WHERE risk_score > 80 ORDER BY timestamp DESC;</span>
+      <span style="color:var(--text-dim);">-- Databricks Genie Generated SQL[cite: 1]:</span><br>
+      <span style="color:var(--cyan);" id="sqlCode">SELECT alert_id, title, channel, contact, risk_score, precedent_status FROM delta_lakehouse.threat_telemetry WHERE risk_score >= 70 ORDER BY risk_score DESC;</span>
     </div>
 
     <div class="genie-table-container" id="genieTableWrap" style="display:none;">
       <table class="results-table">
         <thead>
           <tr>
+            <th>Alert ID</th>
             <th>Post Title</th>
             <th>Channel</th>
-            <th>Contact Reused</th>
+            <th>Contact</th>
             <th>Threat Index</th>
             <th>Precedent Status</th>
-            <th>Action</th>
+            <th>Triage Action</th>
           </tr>
         </thead>
         <tbody id="genieTableBody"></tbody>
@@ -523,11 +401,11 @@
 </div>
 
 <script>
-// ─── MOCK INGRESS DATA STREAM ────────────────────────────
+// ─── INITIAL LAKEHOUSE DATA STREAM ────────────────────────
 const sharedPhone = '+91-98765-43210';
 const sharedHandle = '@urgent_campus_gigs';
 
-const mockPosts = [
+let mockPosts = [
   {
     id: 1, source: 'Instagram DM', time: '2 min ago',
     title: 'Urgent Hand & Foot Models Needed — ₹25,000/day!',
@@ -544,7 +422,7 @@ const mockPosts = [
   },
   {
     id: 3, source: 'Telegram Channel', time: '9 min ago',
-    title: 'Remote Data Packing / Typing — ₹500/hr, Work from Home',
+    title: 'Remote Data Typing — ₹500/hr, Work from Home',
     text: 'Urgent hiring for online typing and packaging work. Zero experience needed. Send ₹1,500 security deposit via UPI/CashApp for workstation credentials. Contact @urgent_campus_gigs.',
     contact: sharedHandle,
     flags: ['urgency', 'deposit', 'telegram_only', 'shared_contact', 'unrealistic_pay']
@@ -562,15 +440,79 @@ const mockPosts = [
     text: 'Databricks Bengaluru campus hiring Software Engineer Interns for summer cohort. Apply directly via official careers portal. Requires enrollment in CS/IS degree program.',
     contact: 'careers@databricks.com',
     flags: ['legit', 'verified_domain']
-  },
-  {
-    id: 6, source: 'Facebook Jobs', time: '22 min ago',
-    title: 'Crypto Trading Assistant — Earn ₹15,000/day Passive Income',
-    text: 'Learn our automated crypto arbitrage bot. Send ₹2,000 registration fee in ETH/USDT to receive private Discord invite. DM @urgent_campus_gigs to secure limited spot.',
-    contact: sharedHandle,
-    flags: ['crypto', 'deposit', 'scarcity', 'shared_contact']
   }
 ];
+
+// ─── CSV FILE SCANNER & PARSER ────────────────────────────
+function handleCSVUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    parseCSVAndIngest(text);
+  };
+  reader.readAsText(file);
+}
+
+function parseCSVAndIngest(csvText) {
+  const lines = csvText.trim().split('\n');
+  if (lines.length < 2) return;
+
+  const newRecords = [];
+  // Parse header and rows (Expected format: title, source, text, contact)
+  for (let i = 1; i < lines.length; i++) {
+    const row = lines[i].split(',');
+    if (row.length >= 3) {
+      const title = row[0]?.replace(/"/g, '').trim() || 'Scanned Ingress Post';
+      const source = row[1]?.replace(/"/g, '').trim() || 'Ingress Stream';
+      const text = row[2]?.replace(/"/g, '').trim() || '';
+      const contact = row[3]?.replace(/"/g, '').trim() || '+91-90000-00000';
+
+      newRecords.push({
+        id: mockPosts.length + 1,
+        source: source,
+        time: 'Just now (CSV)',
+        title: title,
+        text: text,
+        contact: contact,
+        flags: text.toLowerCase().includes('fee') || text.toLowerCase().includes('deposit') ? ['deposit','urgency'] : ['csv_ingress']
+      });
+    }
+  }
+
+  mockPosts = [...newRecords, ...mockPosts];
+  renderSignals();
+  alert(`✓ Ingested ${newRecords.length} records into the Delta Lakehouse stream!`);
+}
+
+function generateSimulatedStream() {
+  const sampleScams = [
+    {
+      title: 'Crypto Arbitrage Assistant — ₹12,000/day',
+      source: 'Telegram Channel',
+      text: 'Earn instant returns! Send ₹2,000 registration deposit via UPI to receive trading bot key. Contact @urgent_campus_gigs on Telegram.',
+      contact: sharedHandle,
+      flags: ['crypto', 'deposit', 'telegram_only', 'shared_contact']
+    },
+    {
+      title: 'Campus Ambassador — Red Bull India',
+      source: 'College Portal',
+      text: 'Join Red Bull student marketing team for fall semester. 10 hrs/week, official merchandise and stipend. Apply through university career portal.',
+      contact: 'ambassadors@redbull.com',
+      flags: ['legit', 'verified_domain']
+    }
+  ];
+
+  const randomPost = sampleScams[Math.floor(Math.random() * sampleScams.length)];
+  mockPosts.unshift({
+    id: mockPosts.length + 1,
+    time: 'Just now (Stream)',
+    ...randomPost
+  });
+  renderSignals();
+}
 
 // ─── SCORING FORMULA ENGINE ──────────────────────────────
 const linguisticPatterns = [
@@ -583,7 +525,7 @@ const linguisticPatterns = [
 ];
 
 const legitPatterns = [
-  { pattern: /(university|department|campus|placement|bmsce|databricks)/i, points: -4, label: 'Verified institutional context' },
+  { pattern: /(university|department|campus|placement|bmsce|databricks|redbull)/i, points: -4, label: 'Verified institutional context' },
   { pattern: /(apply through|official portal|careers portal|credentials)/i, points: -5, label: 'Standard verified channel' }
 ];
 
@@ -614,7 +556,7 @@ function computeScore(post) {
     explanations.push({ type: 'positive', icon: '▼', text: '-2 GraphFrames: Single isolated contact record' });
   }
 
-  let velocity = post.time.includes('2 min') ? 18 : post.time.includes('5 min') ? 12 : 6;
+  let velocity = post.time.includes('2 min') || post.time.includes('Just now') ? 18 : post.time.includes('5 min') ? 12 : 6;
   if (velocity > 10) {
     explanations.push({ type: 'negative', icon: '▲', text: `+${velocity} High posting ingress velocity detected` });
   } else {
@@ -622,15 +564,15 @@ function computeScore(post) {
   }
 
   let precedent = 0;
-  if (post.flags.includes('shared_contact')) {
+  if (post.flags.includes('shared_contact') || post.flags.includes('deposit')) {
     precedent = 14;
-    explanations.push({ type: 'negative', icon: '▲', text: '+14 Databricks Genie: Matched 4 prior confirmed takedowns in Lakehouse[cite: 1]' });
+    explanations.push({ type: 'negative', icon: '▲', text: '+14 Databricks Genie: Matched 4 prior confirmed scam takedowns in Lakehouse[cite: 1]' });
   } else if (post.flags.includes('verified_domain') || post.flags.includes('university_verified')) {
     precedent = 1;
-    explanations.push({ type: 'positive', icon: '▼', text: '+1 Databricks Genie: Verified employer domain in Lakehouse registry' });
+    explanations.push({ type: 'positive', icon: '▼', text: '+1 Databricks Genie: Verified employer domain in Lakehouse registry[cite: 1]' });
   } else {
     precedent = 4;
-    explanations.push({ type: 'neutral', icon: '—', text: '+4 Genie: No prior scam history on file' });
+    explanations.push({ type: 'neutral', icon: '—', text: '+4 Genie: No prior scam history on file[cite: 1]' });
   }
 
   let geo = post.flags.includes('geo_anomaly') || post.flags.includes('telegram_only') ? 9 : 2;
@@ -642,7 +584,7 @@ function computeScore(post) {
   return { scores: { linguistic, relational, velocity, precedent, geo, total }, explanations };
 }
 
-// ─── PAGE & CONSOLE CONTROLLER ────────────────────────────
+// ─── UI CONTROLLER ────────────────────────────────────────
 let activeId = null;
 let isAnimating = false;
 
@@ -670,6 +612,7 @@ function renderSignals() {
       <div class="signal-title">${p.title}</div>
       <div class="signal-snippet">${p.text}</div>
       <div class="signal-footer">
+        <span class="mono" style="font-size:10px;color:var(--cyan);">${p.contact}</span>
         <span class="risk-badge risk-queued" id="badge-${p.id}">QUEUED</span>
       </div>
     </div>
@@ -690,15 +633,15 @@ async function animatePipeline() {
   for (let i = 0; i < nodes.length; i++) {
     document.getElementById(nodes[i]).classList.add('active');
     document.getElementById(labels[i]).classList.add('active');
-    if (i < nodes.length - 1) await delay(250);
+    if (i < nodes.length - 1) await delay(220);
     document.getElementById(nodes[i]).classList.remove('active');
     document.getElementById(nodes[i]).classList.add('complete');
     document.getElementById(labels[i]).classList.remove('active');
     document.getElementById(labels[i]).classList.add('complete');
     if (i < connectors.length) document.getElementById(connectors[i]).classList.add('complete');
-    if (i < nodes.length - 1) await delay(60);
+    if (i < nodes.length - 1) await delay(50);
   }
-  await delay(120);
+  await delay(100);
 }
 
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -714,10 +657,10 @@ async function selectSignal(id) {
   document.getElementById('resultsPanel').style.display = 'none';
 
   document.getElementById('postPreview').innerHTML = `
-    <div class="meta">ACTIVE INGRESS #SN-${post.id}092 • ${post.source}</div>
+    <div class="meta">DELTA LAKE INGRESS #SN-${post.id}092 • ${post.source}</div>
     <div style="font-weight:600; color:var(--text-bright); margin-bottom:4px;">${post.title}</div>
     <div style="color:var(--text-dim); margin-bottom:6px;">"${post.text}"</div>
-    <div style="font-size:11px;">Identified Contact Handle: <span style="color:var(--cyan);" class="mono">${post.contact}</span></div>
+    <div style="font-size:11px;">Tracked Contact: <span style="color:var(--cyan);" class="mono">${post.contact}</span></div>
   `;
 
   renderSignals();
@@ -830,14 +773,14 @@ function renderExplanations(explanations, scores, tier) {
 }
 
 function escalateAlert() {
-  alert("🚨 Action Executed: Threat #SN-" + activeId + " flagged to University Safety Officer & Lakehouse Takedown Queue.");
+  alert("🚨 Action Executed: Threat #SN-" + activeId + " flagged to Placement Officer & Lakehouse Takedown Queue.");
 }
 
 function clearAlert() {
   alert("✓ Signal #SN-" + activeId + " marked as verified institutional listing.");
 }
 
-// ─── GENIE FULL SPACE QUERY ──────────────────────────────
+// ─── GENIE SPACE CONVERSATIONAL SQL ───────────────────────
 function runGeniePageQuery(queryText) {
   const input = document.getElementById('genieInputFull');
   const q = queryText || input.value;
@@ -862,7 +805,7 @@ function runGeniePageQuery(queryText) {
     results = results.filter(p => p.riskScore < 35);
     sqlCode.textContent = "SELECT * FROM delta_lakehouse.threat_telemetry WHERE risk_score < 35 AND institutional_verified = true;";
   } else {
-    sqlCode.textContent = "SELECT * FROM delta_lakehouse.threat_telemetry WHERE post_text LIKE '%crypto%' OR post_text LIKE '%fee%' ORDER BY timestamp DESC;";
+    sqlCode.textContent = "SELECT * FROM delta_lakehouse.threat_telemetry WHERE post_text LIKE '%crypto%' OR post_text LIKE '%fee%' OR post_text LIKE '%deposit%' ORDER BY timestamp DESC;";
   }
 
   sqlBox.style.display = 'block';
@@ -874,12 +817,13 @@ function runGeniePageQuery(queryText) {
     
     return `
       <tr>
-        <td style="font-weight:600;">${p.title.substring(0, 40)}...</td>
+        <td class="mono" style="color:var(--text-dim);">SN-${p.id}092</td>
+        <td style="font-weight:600;">${p.title.substring(0, 36)}...</td>
         <td class="mono">${p.source}</td>
         <td class="mono" style="color:var(--cyan);">${p.contact}</td>
         <td class="mono" style="color:${color};font-weight:700;">${p.riskScore}/100</td>
         <td><span class="risk-badge ${p.riskScore>70?'risk-high':p.riskScore>35?'risk-medium':'risk-low'}">${statusText}</span></td>
-        <td><button onclick="switchPage('consolePage', document.querySelectorAll('.nav-tab')[1]); selectSignal(${p.id});" style="background:transparent; border:1px solid var(--border); color:var(--neon-lime); padding:4px 8px; border-radius:4px; cursor:pointer; font-size:10.5px;">Inspect</button></td>
+        <td><button onclick="switchPage('consolePage', document.querySelectorAll('.nav-tab')[0]); selectSignal(${p.id});" style="background:transparent; border:1px solid var(--border); color:var(--neon-lime); padding:4px 8px; border-radius:4px; cursor:pointer; font-size:10.5px;">Inspect Threat</button></td>
       </tr>
     `;
   }).join('');
@@ -896,6 +840,8 @@ function updateClock() {
 }
 setInterval(updateClock, 1000);
 updateClock();
+
+renderSignals();
 </script>
 </body>
 </html>
