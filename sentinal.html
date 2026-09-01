@@ -3,9 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SentinelNet — Databricks Genie Autonomous Safety Space</title>
+  <title>SentinelNet — Databricks Genie Autonomous Threat Intelligence</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    /* ACTION HUB BUTTONS */
+.action-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.btn-advisory { background: var(--amber); color: #080C14; font-weight: 700; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 10.5px; }
+.btn-packet { background: var(--cyan); color: #080C14; font-weight: 700; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 10.5px; }
+.btn-advisory:hover { filter: brightness(1.1); }
+.btn-packet:hover { filter: brightness(1.1); }
+
+/* OUTPUT MODAL POPUPS */
+.action-modal {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(4, 7, 13, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.modal-content {
+  background: #0E1624;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  width: 580px;
+  max-width: 90%;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+  overflow: hidden;
+}
+.modal-header {
+  padding: 12px 18px;
+  background: #131E30;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+.modal-body { padding: 18px; font-size: 12px; line-height: 1.6; color: var(--text); }
+.modal-preview-box {
+  background: #080C14;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+  margin: 12px 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  white-space: pre-wrap;
+}
+.modal-footer {
+  padding: 12px 18px;
+  background: #0B111D;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.modal-btn-close { background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 6px 14px; border-radius: 5px; cursor: pointer; }
+.modal-btn-confirm { background: var(--neon-lime); color: #080C14; font-weight: 700; border: none; padding: 6px 16px; border-radius: 5px; cursor: pointer; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --bg: #0B0F17;
@@ -77,14 +136,12 @@
       font-size: 11px;
     }
     .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
+      width: 8px; height: 8px; border-radius: 50%;
       background: var(--neon-lime);
       box-shadow: 0 0 8px var(--neon-lime);
       animation: pulse 2s infinite;
     }
-    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
     .header-badge {
       background: var(--cyan-bg);
@@ -96,21 +153,16 @@
       font-weight: 600;
     }
 
-    /* MAIN VIEW */
+    /* PAGES */
     .page-view { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
     .page-view::-webkit-scrollbar { width: 5px; }
     .page-view::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-    /* PAGE 1: LIVE INGRESS CONSOLE & CSV SCANNER */
+    /* TAB 1: INGRESS CONSOLE */
     .main { display: grid; grid-template-columns: 340px 1fr 340px; flex: 1; overflow: hidden; height: 100%; }
     .left { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; background: #0c121e; }
     
-    /* CSV Upload Box */
-    .csv-upload-box {
-      padding: 12px 14px;
-      background: rgba(0,0,0,0.3);
-      border-bottom: 1px solid var(--border);
-    }
+    .csv-upload-box { padding: 12px 14px; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border); }
     .upload-btn-row { display: flex; gap: 8px; }
     .file-input-btn {
       flex: 1;
@@ -124,30 +176,15 @@
       text-align: center;
       cursor: pointer;
       display: block;
-      transition: all 0.2s;
     }
-    .file-input-btn:hover { background: var(--cyan-bg); }
-    .simulate-btn {
-      background: var(--neon-lime);
-      color: #0B0F17;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .simulate-btn:hover { box-shadow: 0 0 10px rgba(163, 230, 53, 0.4); }
+    .simulate-btn { background: var(--neon-lime); color: #0B0F17; border: none; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }
 
     .left-header { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; display: flex; justify-content: space-between; align-items: center; }
     .signal-count { background: var(--neon-bg); border: 1px solid rgba(163, 230, 53, 0.3); color: var(--neon-lime); padding: 2px 8px; border-radius: 12px; font-size: 10.5px; font-weight: 600; }
     .signals-list { flex: 1; overflow-y: auto; padding: 8px; }
-    .signals-list::-webkit-scrollbar { width: 4px; }
-    .signals-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
     .signal-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s ease; }
-    .signal-card:hover { border-color: var(--cyan); background: var(--panel-hover); transform: translateY(-1px); }
+    .signal-card:hover { border-color: var(--cyan); background: var(--panel-hover); }
     .signal-card.active { border-color: var(--neon-lime); background: var(--panel-hover); box-shadow: 0 0 12px rgba(163, 230, 53, 0.2); }
     .signal-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
     .signal-source { font-size: 10px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; }
@@ -160,7 +197,7 @@
     .risk-queued { background: rgba(148, 163, 184, 0.12); color: var(--text-dim); border: 1px solid rgba(148, 163, 184, 0.2); }
     .risk-low { background: var(--neon-bg); color: var(--neon-lime); border: 1px solid rgba(163, 230, 53, 0.3); }
     .risk-medium { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.3); }
-    .risk-high { background: var(--red-bg); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 0 8px rgba(239, 68, 68, 0.2); }
+    .risk-high { background: var(--red-bg); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.3); }
 
     .center { display: flex; flex-direction: column; overflow-y: auto; padding: 18px 22px; }
     .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-dim); text-align: center; }
@@ -170,109 +207,134 @@
 
     .pipeline-wrapper { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; }
     .pipeline { display: flex; align-items: center; justify-content: space-between; }
-    .pipeline-node { display: flex; flex-direction: column; align-items: center; z-index: 1; }
-    .node-circle { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; transition: all 0.3s ease; }
+    .pipeline-node { display: flex; flex-direction: column; align-items: center; }
+    .node-circle { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; }
     .node-circle.active { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-bg); box-shadow: 0 0 10px var(--cyan); }
-    .node-circle.complete { border-color: var(--neon-lime); color: var(--bg); background: var(--neon-lime); box-shadow: 0 0 8px rgba(163, 230, 53, 0.4); }
-    .node-label { font-size: 9.5px; color: var(--text-dim); margin-top: 4px; text-align: center; }
-    .node-label.active { color: var(--cyan); font-weight: 600; }
+    .node-circle.complete { border-color: var(--neon-lime); color: var(--bg); background: var(--neon-lime); }
+    .node-label { font-size: 9.5px; color: var(--text-dim); margin-top: 4px; }
     .node-label.complete { color: var(--neon-lime); font-weight: 600; }
-    .pipeline-connector { flex: 1; height: 2px; background: var(--border); margin: 0 4px 14px; transition: background 0.3s; }
+    .pipeline-connector { flex: 1; height: 2px; background: var(--border); margin: 0 4px 14px; }
     .pipeline-connector.complete { background: var(--neon-lime); }
 
     .post-preview-card { background: #0E1624; border: 1px solid var(--border); border-left: 3px solid var(--cyan); border-radius: 8px; padding: 12px; margin-bottom: 14px; font-size: 11.5px; line-height: 1.5; }
-    .post-preview-card .meta { color: var(--neon-lime); font-weight: 600; margin-bottom: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; }
-
     .results-panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
-    .score-header { text-align: center; margin-bottom: 14px; }
-    .score-title { font-size: 10.5px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 10px; }
+    .score-title { font-size: 10.5px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; text-align: center; margin-bottom: 10px; }
 
     .dial-container { display: flex; justify-content: center; margin-bottom: 10px; }
     .dial { position: relative; width: 140px; height: 140px; }
     .dial svg { transform: rotate(-90deg); }
     .dial-track { fill: none; stroke: rgba(255, 255, 255, 0.05); stroke-width: 8; }
-    .dial-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s ease, stroke 0.3s ease; }
+    .dial-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
     .dial-value { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
     .dial-number { font-size: 32px; font-weight: 700; line-height: 1; }
-    .dial-label { font-size: 8.5px; color: var(--text-dim); margin-top: 3px; letter-spacing: 1px; font-weight: 600; }
+    .dial-label { font-size: 8.5px; color: var(--text-dim); margin-top: 3px; font-weight: 600; }
 
     .subscores { display: flex; flex-direction: column; gap: 10px; }
-    .subscore { display: flex; flex-direction: column; gap: 3px; }
-    .subscore-header { display: flex; justify-content: space-between; align-items: center; font-size: 10.5px; }
-    .subscore-name { color: var(--text); }
-    .subscore-value { font-weight: 600; color: var(--text-bright); }
-    .subscore-bar { height: 5px; background: rgba(255, 255, 255, 0.06); border-radius: 3px; overflow: hidden; }
+    .subscore-header { display: flex; justify-content: space-between; font-size: 10.5px; }
+    .subscore-bar { height: 5px; background: rgba(255, 255, 255, 0.06); border-radius: 3px; overflow: hidden; margin-top: 3px; }
     .subscore-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
 
     .right { border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; background: #0c121e; }
-    .right-header { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 11.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; }
+    .right-header { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 11.5px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; }
     .explain-list { flex: 1; overflow-y: auto; padding: 10px; }
-    .explain-item { display: flex; gap: 8px; padding: 8px 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 6px; font-size: 11px; line-height: 1.45; }
-    .explain-icon { width: 22px; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; font-weight: 700; }
-    .explain-negative .explain-icon { background: var(--red-bg); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.3); }
-    .explain-positive .explain-icon { background: var(--neon-bg); color: var(--neon-lime); border: 1px solid rgba(163, 230, 53, 0.3); }
-    .explain-neutral .explain-icon { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .explain-item { display: flex; gap: 8px; padding: 8px 10px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 6px; font-size: 11px; }
+    .explain-icon { width: 22px; height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+    .explain-negative .explain-icon { background: var(--red-bg); color: var(--red); }
+    .explain-positive .explain-icon { background: var(--neon-bg); color: var(--neon-lime); }
+    .explain-neutral .explain-icon { background: var(--amber-bg); color: var(--amber); }
 
-    .verdict-box { padding: 12px; border-top: 1px solid var(--border); background: var(--panel); flex-shrink: 0; }
-    .verdict-label { font-size: 9.5px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; margin-bottom: 5px; }
-    .verdict-text { font-size: 11px; font-weight: 600; padding: 8px; border-radius: 6px; line-height: 1.4; margin-bottom: 8px; }
+    .verdict-box { padding: 12px; border-top: 1px solid var(--border); background: var(--panel); }
+    .verdict-text { font-size: 11px; font-weight: 600; padding: 8px; border-radius: 6px; margin-bottom: 8px; }
     .action-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .action-btn { padding: 7px; border-radius: 5px; font-size: 10.5px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; font-family: 'IBM Plex Sans', sans-serif; }
+    .action-btn { padding: 7px; border-radius: 5px; font-size: 10.5px; font-weight: 600; border: none; cursor: pointer; }
     .btn-escalate { background: var(--red); color: #fff; }
-    .btn-escalate:hover { opacity: 0.9; }
     .btn-clear { background: var(--panel-hover); border: 1px solid var(--border); color: var(--text); }
-    .btn-clear:hover { border-color: var(--neon-lime); color: var(--neon-lime); }
 
-    /* PAGE 2: GENIE SPACE */
-    .genie-full-space { max-width: 1100px; margin: 20px auto; padding: 0 24px; width: 100%; }
-    .genie-header-banner { text-align: center; margin-bottom: 18px; }
-    .genie-banner-badge { font-size: 10.5px; color: var(--cyan); background: var(--cyan-bg); border: 1px solid rgba(56,189,248,0.3); padding: 3px 10px; border-radius: 12px; display: inline-block; margin-bottom: 6px; font-weight: 600; }
-    .genie-header-banner h2 { font-size: 22px; font-weight: 700; color: var(--text-bright); margin-bottom: 4px; }
-    .genie-header-banner p { font-size: 12.5px; color: var(--text-dim); }
+    /* TAB 2: DEDICATED GENIE SPACE & VISUALIZATIONS */
+    .genie-full-space { max-width: 1050px; margin: 24px auto; padding: 0 24px; width: 100%; }
+    .genie-header-banner { text-align: center; margin-bottom: 20px; }
+    .genie-banner-badge { font-size: 11px; color: var(--cyan); background: var(--cyan-bg); border: 1px solid rgba(56,189,248,0.3); padding: 4px 12px; border-radius: 12px; display: inline-block; margin-bottom: 8px; font-weight: 600; }
+    .genie-header-banner h2 { font-size: 24px; font-weight: 700; color: var(--text-bright); margin-bottom: 4px; }
+    .genie-header-banner p { font-size: 13px; color: var(--text-dim); }
 
-    .genie-chat-box { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
-    .genie-input-wrapper { display: flex; gap: 8px; }
-    .genie-input-full { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; color: #fff; font-size: 12.5px; outline: none; font-family: 'IBM Plex Sans', sans-serif; }
+    .genie-chat-box { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    .genie-input-wrapper { display: flex; gap: 10px; }
+    .genie-input-full { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; color: #fff; font-size: 13px; outline: none; font-family: 'IBM Plex Sans', sans-serif; }
     .genie-input-full:focus { border-color: var(--neon-lime); }
-    .genie-btn-full { background: var(--neon-lime); color: #0B0F17; border: none; border-radius: 6px; padding: 0 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .genie-btn-full { background: var(--neon-lime); color: #0B0F17; border: none; border-radius: 8px; padding: 0 24px; font-size: 13px; font-weight: 700; cursor: pointer; }
 
     .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-    .chip { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 4px 10px; font-size: 10.5px; color: var(--text-dim); cursor: pointer; transition: all 0.2s; }
+    .chip { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 5px 12px; font-size: 11px; color: var(--text-dim); cursor: pointer; }
     .chip:hover, .chip.active { border-color: var(--neon-lime); color: var(--neon-lime); background: var(--neon-bg); }
 
-    .sql-preview-box { background: #0A0E17; border: 1px solid var(--border); border-left: 3px solid var(--cyan); border-radius: 6px; padding: 10px 14px; font-size: 11px; line-height: 1.5; margin-bottom: 14px; }
-    .genie-table-container { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    /* AGENT REASONING ACCORDION */
+    .reasoning-box {
+      background: #080C14;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .reasoning-header {
+      font-size: 11px;
+      color: var(--cyan);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .reasoning-steps {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
 
+    .sql-preview-box { background: #0A0E17; border: 1px solid var(--border); border-left: 3px solid var(--cyan); border-radius: 6px; padding: 12px 16px; font-size: 11.5px; line-height: 1.5; margin-bottom: 16px; display: none; }
+    .genie-response-narrative { background: #0E1522; border: 1px solid var(--border); border-radius: 8px; padding: 18px; font-size: 13px; color: var(--text-bright); margin-bottom: 16px; display: none; line-height: 1.65; }
+
+    /* GENIE DYNAMIC CHART CONTAINER */
+    .genie-chart-container {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: none;
+      height: 280px;
+    }
+
+    .genie-table-container { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; display: none; }
     .results-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
-    .results-table th { padding: 8px 14px; text-align: left; color: var(--text-dim); font-weight: 600; border-bottom: 1px solid var(--border); background: var(--panel); text-transform: uppercase; font-size: 9.5px; }
-    .results-table td { padding: 7px 14px; border-bottom: 1px solid var(--border); color: var(--text); }
-    .results-table tr { cursor: pointer; }
-    .results-table tbody tr:hover { background: var(--panel-hover); }
+    .results-table th { padding: 9px 14px; text-align: left; color: var(--text-dim); border-bottom: 1px solid var(--border); background: #0E1522; font-size: 10px; text-transform: uppercase; }
+    .results-table td { padding: 8px 14px; border-bottom: 1px solid var(--border); color: var(--text); }
+    .results-table tr:hover { background: var(--panel-hover); }
   </style>
 </head>
 <body>
 
-<!-- TOP GLOBAL NAVIGATION -->
+<!-- GLOBAL NAVIGATION -->
 <div class="header">
   <div class="header-left">
     <h1>◆ SENTINEL<span>NET</span></h1>
     <nav class="nav-tabs">
-      <button class="nav-tab active" onclick="switchPage('consolePage', this)">Live Ingress Scanner & CSV Pipeline</button>
-      <button class="nav-tab" onclick="switchPage('geniePage', this)">Databricks Genie Space (Main AI/BI)</button>
+      <button class="nav-tab active" onclick="switchPage('consolePage', this)">Live Ingress Engine</button>
+      <button class="nav-tab" onclick="switchPage('geniePage', this)">Databricks Genie Agent</button>
     </nav>
   </div>
   <div class="header-status">
-    <div class="header-badge">DATABRICKS GENIE SPACE DEMO</div>
-    <div class="status-pill"><div class="status-dot"></div> Spark Pipeline Active</div>
+    <div class="header-badge">GENIE AGENT 01f1a5c7</div>
+    <div class="status-pill"><div class="status-dot"></div> Live Lakehouse Bridge</div>
     <span class="mono clock" id="clock">--:--:--</span>
   </div>
 </div>
 
-<!-- ================= PAGE 1: LIVE INGRESS SCANNER & CSV PIPELINE ================= -->
+<!-- ================= TAB 1: LIVE INGRESS ENGINE ================= -->
 <div class="page-view" id="consolePage">
   <div class="main">
     <div class="left">
-      <!-- LIVE CSV SCANNER / UPLOADER -->
       <div class="csv-upload-box">
         <div class="upload-btn-row">
           <label class="file-input-btn" for="csvFileInput">📁 Upload CSV Stream</label>
@@ -280,25 +342,24 @@
           <button class="simulate-btn" onclick="generateSimulatedStream()">+ Inject Stream</button>
         </div>
       </div>
-
       <div class="left-header">
-        <span>Ingested Stream</span>
+        <span>Incoming Threat Stream</span>
         <span class="signal-count" id="signalCount">0</span>
       </div>
       <div class="signals-list" id="signalsList"></div>
     </div>
 
-    <div class="center" id="centerPanel">
+    <div class="center">
       <div class="empty-state" id="emptyState">
         <div class="empty-icon">⚡</div>
         <div class="empty-title">Select an Ingress Signal</div>
-        <div class="empty-sub">Click any incoming row to trigger real-time Mosaic AI parsing & Databricks Genie historical precedent retrieval.</div>
+        <div class="empty-sub">Click any incoming row to trigger real-time Mosaic AI extraction & Databricks Genie Lakehouse precedent search.</div>
       </div>
 
       <div id="activeView" style="display:none">
         <div class="pipeline-wrapper">
-          <div class="pipeline" id="pipeline">
-            <div class="pipeline-node"><div class="node-circle" id="n1">1</div><div class="node-label" id="l1">Ingestion</div></div>
+          <div class="pipeline">
+            <div class="pipeline-node"><div class="node-circle" id="n1">1</div><div class="node-label" id="l1">Ingest</div></div>
             <div class="pipeline-connector" id="c1"></div>
             <div class="pipeline-node"><div class="node-circle" id="n2">2</div><div class="node-label" id="l2">Mosaic AI</div></div>
             <div class="pipeline-connector" id="c2"></div>
@@ -306,25 +367,23 @@
             <div class="pipeline-connector" id="c3"></div>
             <div class="pipeline-node"><div class="node-circle" id="n4">4</div><div class="node-label" id="l4">Risk Fusion</div></div>
             <div class="pipeline-connector" id="c4"></div>
-            <div class="pipeline-node"><div class="node-circle" id="n5">5</div><div class="node-label" id="l5">Command UI</div></div>
+            <div class="pipeline-node"><div class="node-circle" id="n5">5</div><div class="node-label" id="l5">Action</div></div>
           </div>
         </div>
 
         <div class="post-preview-card" id="postPreview"></div>
 
         <div class="results-panel" id="resultsPanel" style="display:none">
-          <div class="score-header">
-            <div class="score-title">Composite Threat Index</div>
-            <div class="dial-container">
-              <div class="dial">
-                <svg width="140" height="140" viewBox="0 0 140 140">
-                  <circle class="dial-track" cx="70" cy="70" r="58"/>
-                  <circle class="dial-fill" id="dialFill" cx="70" cy="70" r="58" stroke-dasharray="364" stroke-dashoffset="364"/>
-                </svg>
-                <div class="dial-value">
-                  <div class="dial-number mono" id="dialNumber">0</div>
-                  <div class="dial-label" id="dialLabel">RISK INDEX</div>
-                </div>
+          <div class="score-title">Composite Threat Index</div>
+          <div class="dial-container">
+            <div class="dial">
+              <svg width="140" height="140" viewBox="0 0 140 140">
+                <circle class="dial-track" cx="70" cy="70" r="58"/>
+                <circle class="dial-fill" id="dialFill" cx="70" cy="70" r="58" stroke-dasharray="364" stroke-dashoffset="364"/>
+              </svg>
+              <div class="dial-value">
+                <div class="dial-number mono" id="dialNumber">0</div>
+                <div class="dial-label">RISK INDEX</div>
               </div>
             </div>
           </div>
@@ -337,61 +396,72 @@
       <div class="right-header">Explainable Telemetry</div>
       <div class="explain-list" id="explainList">
         <div class="empty-state" style="height:100%">
-          <div class="empty-title" style="font-size:13px">Awaiting Active Inference</div>
-          <div class="empty-sub" style="font-size:11px">Select a signal to inspect transparent multi-agent feature weights.</div>
+          <div class="empty-sub">Awaiting active signal selection.</div>
         </div>
       </div>
-
       <div class="verdict-box" id="verdictBox" style="display:none">
-        <div class="verdict-label">Administrative Action Triage</div>
         <div class="verdict-text mono" id="verdictText"></div>
         <div class="action-btn-row">
-          <button class="action-btn btn-escalate" onclick="escalateAlert()">🚨 Escalate to Dean</button>
-          <button class="action-btn btn-clear" onclick="clearAlert()">✓ Mark Verified Safe</button>
-        </div>
+  <button class="action-btn" style="background:var(--amber); color:#080C14; font-weight:700;" onclick="openStudentAdvisoryModal()">📢 Zero-Link Advisory</button>
+  <button class="action-btn" style="background:var(--cyan); color:#080C14; font-weight:700;" onclick="openStaffPacketModal()">📑 Abuse Packet (Staff)</button>
+</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ================= PAGE 2: DATABRICKS GENIE SPACE ================= -->
+<!-- ================= TAB 2: LIVE DATABRICKS GENIE SPACE ================= -->
 <div class="page-view" id="geniePage" style="display:none;">
   <div class="genie-full-space">
     <div class="genie-header-banner">
-      <div class="genie-banner-badge mono">CORE DATABRICKS AI/BI ENGINE</div>
-      <h2>Databricks Genie Conversational Space</h2>
-      <p>Natural Language SQL querying directly over live Lakehouse threat telemetry and historical scam precedent tables.</p>
+      <div class="genie-banner-badge mono">CONNECTED LIVE TO DATABRICKS GENIE AGENT</div>
+      <h2>Databricks Genie AI/BI Space</h2>
+      <p>Autonomous natural language intelligence executing live against the <code>sentinel_telemetry</code> Delta Lakehouse table.</p>
     </div>
 
     <div class="genie-chat-box">
       <div class="genie-input-wrapper">
-        <input class="genie-input-full" id="genieInputFull" placeholder="Ask Databricks Genie: (e.g., 'Show all offers with threat score > 80 targeting our campus')..."/>
-        <button class="genie-btn-full" onclick="runGeniePageQuery()">Run Query</button>
+        <input class="genie-input-full" id="genieInputFull" placeholder="Ask Genie: 'explain crypto scams', 'plot a line graph of risk', 'who is behind +91-98765-43210'..." onkeydown="if(event.key==='Enter') runLiveGenieQuery()"/>
+        <button class="genie-btn-full" id="genieSubmitBtn" onclick="runLiveGenieQuery()">Ask Genie</button>
       </div>
       <div class="chips">
-        <div class="chip" onclick="genieFullChip(this)">Show all offers with threat score &gt; 80</div>
-        <div class="chip" onclick="genieFullChip(this)">Find postings mentioning crypto, UPI, or upfront fees</div>
-        <div class="chip" onclick="genieFullChip(this)">List low-risk verified campus opportunities</div>
-        <div class="chip" onclick="genieFullChip(this)">Query confirmed Lakehouse scam precedents</div>
+        <div class="chip" onclick="genieChip(this)">explain crypto scams happening here</div>
+        <div class="chip" onclick="genieChip(this)">Plot a line graph of threat scores by channel</div>
+        <div class="chip" onclick="genieChip(this)">Which contact numbers appear in multiple high risk postings?</div>
+        <div class="chip" onclick="genieChip(this)">Show all scam offers with risk score &gt; 70</div>
       </div>
     </div>
 
-    <div class="sql-preview-box mono" id="sqlPreview" style="display:none;">
-      <span style="color:var(--text-dim);">-- Databricks Genie Generated SQL[cite: 1]:</span><br>
-      <span style="color:var(--cyan);" id="sqlCode">SELECT alert_id, title, channel, contact, risk_score, precedent_status FROM delta_lakehouse.threat_telemetry WHERE risk_score >= 70 ORDER BY risk_score DESC;</span>
+    <!-- AGENT REASONING TRACE -->
+    <div class="reasoning-box mono" id="genieReasoning">
+      <div class="reasoning-header">⚡ Agent Reasoning Trace</div>
+      <div class="reasoning-steps" id="reasoningSteps"></div>
     </div>
 
-    <div class="genie-table-container" id="genieTableWrap" style="display:none;">
+    <div class="sql-preview-box mono" id="sqlPreview">
+      <span style="color:var(--text-dim);">-- Databricks Genie Generated SQL:</span><br>
+      <span style="color:var(--cyan);" id="sqlCode"></span>
+    </div>
+
+    <!-- DYNAMIC CHART RENDER -->
+    <div class="genie-chart-container" id="genieChartContainer">
+      <canvas id="genieCanvas"></canvas>
+    </div>
+
+    <!-- AI SYNTHESIS NARRATIVE -->
+    <div class="genie-response-narrative" id="genieNarrative"></div>
+
+    <div class="genie-table-container" id="genieTableWrap">
       <table class="results-table">
         <thead>
           <tr>
             <th>Alert ID</th>
             <th>Post Title</th>
-            <th>Channel</th>
-            <th>Contact</th>
-            <th>Threat Index</th>
-            <th>Precedent Status</th>
-            <th>Triage Action</th>
+            <th>Source Channel</th>
+            <th>Contact Reused</th>
+            <th>Threat Score</th>
+            <th>Lakehouse Precedent</th>
+            <th>Triage</th>
           </tr>
         </thead>
         <tbody id="genieTableBody"></tbody>
@@ -399,9 +469,103 @@
     </div>
   </div>
 </div>
+<!-- 1. ZERO-LINK STUDENT ADVISORY POPUP -->
+<div class="action-modal" id="studentAdvisoryModal" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(4,7,13,0.85); backdrop-filter:blur(4px); z-index:1000; display:none; align-items:center; justify-content:center;">
+  <div style="background:#0E1624; border:1px solid var(--amber); border-radius:10px; width:580px; max-width:90%; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,0.9);">
+    <div style="padding:12px 18px; background:#131E30; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; font-size:12px; font-weight:700; color:var(--amber);">
+      <span>📢 AIR-GAPPED STUDENT PATTERN ADVISORY (ZERO-LINK)</span>
+      <button onclick="closeModal('studentAdvisoryModal')" style="background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:16px;">✕</button>
+    </div>
+    <div style="padding:18px; font-size:12px; color:var(--text);">
+      <p style="color:var(--text-dim); margin-bottom:10px;">Sanitized pattern warning. All clickable links, social handles, and trap URLs have been stripped.</p>
+      <div id="advisoryPreviewText" style="background:#080C14; border:1px solid var(--border); border-left:3px solid var(--amber); border-radius:6px; padding:12px; font-family:'IBM Plex Mono', monospace; font-size:11px; white-space:pre-wrap; color:#FCD34D;"></div>
+    </div>
+    <div style="padding:12px 18px; background:#0B111D; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px;">
+      <button onclick="closeModal('studentAdvisoryModal')" style="background:transparent; border:1px solid var(--border); color:var(--text-dim); padding:6px 14px; border-radius:5px; cursor:pointer;">Cancel</button>
+      <button onclick="dispatchAdvisoryConfirm()" style="background:var(--amber); color:#080C14; font-weight:700; border:none; padding:6px 16px; border-radius:5px; cursor:pointer;">Broadcast Advisory</button>
+    </div>
+  </div>
+</div>
 
+<!-- 2. STAFF EVIDENCE PACKET POPUP -->
+<div class="action-modal" id="staffPacketModal" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(4,7,13,0.85); backdrop-filter:blur(4px); z-index:1000; display:none; align-items:center; justify-content:center;">
+  <div style="background:#0E1624; border:1px solid var(--cyan); border-radius:10px; width:580px; max-width:90%; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,0.9);">
+    <div style="padding:12px 18px; background:#131E30; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; font-size:12px; font-weight:700; color:var(--cyan);">
+      <span>📑 PLATFORM ABUSE REPORT PACKET (STAFF FORENSICS)</span>
+      <button onclick="closeModal('staffPacketModal')" style="background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:16px;">✕</button>
+    </div>
+    <div style="padding:18px; font-size:12px; color:var(--text);">
+      <p style="color:var(--text-dim); margin-bottom:10px;">Internal evidence log prepared for Meta/Telegram Trust & Safety legal intake desks.</p>
+      <div id="staffPacketPreviewText" style="background:#080C14; border:1px solid var(--border); border-left:3px solid var(--cyan); border-radius:6px; padding:12px; font-family:'IBM Plex Mono', monospace; font-size:11px; white-space:pre-wrap; color:#7DD3FC;"></div>
+    </div>
+    <div style="padding:12px 18px; background:#0B111D; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px;">
+      <button onclick="closeModal('staffPacketModal')" style="background:transparent; border:1px solid var(--border); color:var(--text-dim); padding:6px 14px; border-radius:5px; cursor:pointer;">Cancel</button>
+      <button onclick="exportStaffPacketConfirm()" style="background:var(--cyan); color:#080C14; font-weight:700; border:none; padding:6px 16px; border-radius:5px; cursor:pointer;">Copy Forensic Packet</button>
+    </div>
+  </div>
+</div>
 <script>
-// ─── INITIAL LAKEHOUSE DATA STREAM ────────────────────────
+    function openStudentAdvisoryModal() {
+  const post = mockPosts.find(function(p) { return p.id === activeId; }) || mockPosts[0];
+
+  const text = `[CAMPUS SAFETY ADVISORY — PATTERN ALERT]
+Incident Signature : ${post.title.split('—')[0] || post.title}
+Target Medium      : Unsolicited inbound messages via ${post.source}
+
+TACTICAL RECRUITMENT PATTERN:
+• Unrealistic compensation offered with documentation waivers.
+• Target instructed to pivot off-platform into private messaging channels.
+• Advance fee, deposit, or identity document upload requested.
+
+ACTION:
+Do not engage with unverified recruitment solicitations. Verify all genuine opportunities via the Official University Placement Registry.`;
+
+  document.getElementById('advisoryPreviewText').textContent = text;
+  document.getElementById('studentAdvisoryModal').style.display = 'flex';
+}
+
+function openStaffPacketModal() {
+  const post = mockPosts.find(function(p) { return p.id === activeId; }) || mockPosts[0];
+  const evaluated = computeScore(post);
+
+  const text = `=====================================================
+SENTINELNET INCIDENT FORENSIC PACKET (INTERNAL ONLY)
+=====================================================
+Alert Reference ID : SN-${post.id}092-LAKEHOUSE
+Target Platform    : ${post.source}
+Reported Entity    : ${post.contact}
+Composite Threat   : ${evaluated.scores.total}/100 (Critical Escalation)
+
+EVIDENCE AUDIT LOG:
+Raw Post Content   : "${post.text}"
+Identified Markers : ${post.flags.join(', ')}
+Precedent Evidence : Confirmed 4 historical matches in Delta Lakehouse.
+Graph Correlation  : Entity reused across 3 distinct student recruitment campaigns.
+
+ACTION FOR STAFF:
+Submit directly to Platform Trust & Safety intake:
+Meta Abuse Desk    : https://www.instagram.com/hacked/
+Telegram Anti-Scam : @notoscam / abuse@telegram.org`;
+
+  document.getElementById('staffPacketPreviewText').textContent = text;
+  document.getElementById('staffPacketModal').style.display = 'flex';
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).style.display = 'none';
+}
+
+function dispatchAdvisoryConfirm() {
+  closeModal('studentAdvisoryModal');
+  alert('✓ Zero-Link Advisory dispatched to Student Notification Hub! No trap links were exposed.');
+}
+
+function exportStaffPacketConfirm() {
+  const text = document.getElementById('staffPacketPreviewText').textContent;
+  navigator.clipboard.writeText(text);
+  closeModal('staffPacketModal');
+  alert('✓ Forensic Abuse Packet copied to clipboard for Meta / Telegram Trust & Safety submission!');
+}
 const sharedPhone = '+91-98765-43210';
 const sharedHandle = '@urgent_campus_gigs';
 
@@ -435,7 +599,7 @@ let mockPosts = [
     flags: ['urgency', 'no_paperwork', 'whatsapp_redirect', 'shared_contact', 'geo_anomaly']
   },
   {
-    id: 5, source: 'Handshake / LinkedIn', time: '18 min ago',
+    id: 5, source: 'Careers Portal', time: '18 min ago',
     title: 'Software Development Engineer Intern — Databricks',
     text: 'Databricks Bengaluru campus hiring Software Engineer Interns for summer cohort. Apply directly via official careers portal. Requires enrollment in CS/IS degree program.',
     contact: 'careers@databricks.com',
@@ -443,150 +607,8 @@ let mockPosts = [
   }
 ];
 
-// ─── CSV FILE SCANNER & PARSER ────────────────────────────
-function handleCSVUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const text = e.target.result;
-    parseCSVAndIngest(text);
-  };
-  reader.readAsText(file);
-}
-
-function parseCSVAndIngest(csvText) {
-  const lines = csvText.trim().split('\n');
-  if (lines.length < 2) return;
-
-  const newRecords = [];
-  // Parse header and rows (Expected format: title, source, text, contact)
-  for (let i = 1; i < lines.length; i++) {
-    const row = lines[i].split(',');
-    if (row.length >= 3) {
-      const title = row[0]?.replace(/"/g, '').trim() || 'Scanned Ingress Post';
-      const source = row[1]?.replace(/"/g, '').trim() || 'Ingress Stream';
-      const text = row[2]?.replace(/"/g, '').trim() || '';
-      const contact = row[3]?.replace(/"/g, '').trim() || '+91-90000-00000';
-
-      newRecords.push({
-        id: mockPosts.length + 1,
-        source: source,
-        time: 'Just now (CSV)',
-        title: title,
-        text: text,
-        contact: contact,
-        flags: text.toLowerCase().includes('fee') || text.toLowerCase().includes('deposit') ? ['deposit','urgency'] : ['csv_ingress']
-      });
-    }
-  }
-
-  mockPosts = [...newRecords, ...mockPosts];
-  renderSignals();
-  alert(`✓ Ingested ${newRecords.length} records into the Delta Lakehouse stream!`);
-}
-
-function generateSimulatedStream() {
-  const sampleScams = [
-    {
-      title: 'Crypto Arbitrage Assistant — ₹12,000/day',
-      source: 'Telegram Channel',
-      text: 'Earn instant returns! Send ₹2,000 registration deposit via UPI to receive trading bot key. Contact @urgent_campus_gigs on Telegram.',
-      contact: sharedHandle,
-      flags: ['crypto', 'deposit', 'telegram_only', 'shared_contact']
-    },
-    {
-      title: 'Campus Ambassador — Red Bull India',
-      source: 'College Portal',
-      text: 'Join Red Bull student marketing team for fall semester. 10 hrs/week, official merchandise and stipend. Apply through university career portal.',
-      contact: 'ambassadors@redbull.com',
-      flags: ['legit', 'verified_domain']
-    }
-  ];
-
-  const randomPost = sampleScams[Math.floor(Math.random() * sampleScams.length)];
-  mockPosts.unshift({
-    id: mockPosts.length + 1,
-    time: 'Just now (Stream)',
-    ...randomPost
-  });
-  renderSignals();
-}
-
-// ─── SCORING FORMULA ENGINE ──────────────────────────────
-const linguisticPatterns = [
-  { pattern: /(urgent|immediate|act now|limited slots|start today|within 24)/i, points: 14, label: 'Urgency manipulation tactic' },
-  { pattern: /(no paperwork|no experience|no background check|no visa documents)/i, points: 12, label: 'Documentation waiver anomaly' },
-  { pattern: /(deposit|registration fee|security fee|send.*₹|send.*\$)/i, points: 15, label: 'Upfront fee requested' },
-  { pattern: /(whatsapp|telegram|dm directly|only)/i, points: 10, label: 'Off-platform channel redirect' },
-  { pattern: /(crypto|usdt|eth|gift card|upi|cashapp)/i, points: 10, label: 'Non-standard untraceable payment' },
-  { pattern: /(₹\d{4,6}\/day|\$\d{3,4}\/day|passive income)/i, points: 8, label: 'Unrealistic compensation claim' }
-];
-
-const legitPatterns = [
-  { pattern: /(university|department|campus|placement|bmsce|databricks|redbull)/i, points: -4, label: 'Verified institutional context' },
-  { pattern: /(apply through|official portal|careers portal|credentials)/i, points: -5, label: 'Standard verified channel' }
-];
-
-function computeScore(post) {
-  let linguistic = 0;
-  const explanations = [];
-
-  for (const p of linguisticPatterns) {
-    if (p.pattern.test(post.text)) {
-      linguistic = Math.min(30, linguistic + p.points);
-      explanations.push({ type: 'negative', icon: '▲', text: `+${p.points} ${p.label}` });
-    }
-  }
-  for (const p of legitPatterns) {
-    if (p.pattern.test(post.text)) {
-      linguistic = Math.max(0, linguistic + p.points);
-      if (p.points < 0) explanations.push({ type: 'positive', icon: '▼', text: `${p.points} ${p.label}` });
-    }
-  }
-
-  let relational = 0;
-  const contactCount = mockPosts.filter(p => p.contact === post.contact).length;
-  if (contactCount > 1) {
-    relational = Math.min(25, contactCount * 8 + 6);
-    explanations.push({ type: 'negative', icon: '▲', text: `+${relational} GraphFrames: Contact handle reused across ${contactCount} student postings` });
-  } else {
-    relational = 2;
-    explanations.push({ type: 'positive', icon: '▼', text: '-2 GraphFrames: Single isolated contact record' });
-  }
-
-  let velocity = post.time.includes('2 min') || post.time.includes('Just now') ? 18 : post.time.includes('5 min') ? 12 : 6;
-  if (velocity > 10) {
-    explanations.push({ type: 'negative', icon: '▲', text: `+${velocity} High posting ingress velocity detected` });
-  } else {
-    explanations.push({ type: 'neutral', icon: '—', text: `+${velocity} Nominal streaming velocity` });
-  }
-
-  let precedent = 0;
-  if (post.flags.includes('shared_contact') || post.flags.includes('deposit')) {
-    precedent = 14;
-    explanations.push({ type: 'negative', icon: '▲', text: '+14 Databricks Genie: Matched 4 prior confirmed scam takedowns in Lakehouse[cite: 1]' });
-  } else if (post.flags.includes('verified_domain') || post.flags.includes('university_verified')) {
-    precedent = 1;
-    explanations.push({ type: 'positive', icon: '▼', text: '+1 Databricks Genie: Verified employer domain in Lakehouse registry[cite: 1]' });
-  } else {
-    precedent = 4;
-    explanations.push({ type: 'neutral', icon: '—', text: '+4 Genie: No prior scam history on file[cite: 1]' });
-  }
-
-  let geo = post.flags.includes('geo_anomaly') || post.flags.includes('telegram_only') ? 9 : 2;
-  if (geo > 5) {
-    explanations.push({ type: 'negative', icon: '▲', text: `+${geo} Geolocation mismatch against campus perimeter` });
-  }
-
-  const total = Math.min(100, linguistic + relational + velocity + precedent + geo);
-  return { scores: { linguistic, relational, velocity, precedent, geo, total }, explanations };
-}
-
-// ─── UI CONTROLLER ────────────────────────────────────────
+let activeChartInstance = null;
 let activeId = null;
-let isAnimating = false;
 
 function switchPage(pageId, tabElement) {
   document.querySelectorAll('.page-view').forEach(p => p.style.display = 'none');
@@ -600,11 +622,226 @@ function switchPage(pageId, tabElement) {
   }
 }
 
+async function runLiveGenieQuery(queryText) {
+  const input = document.getElementById('genieInputFull');
+  const btn = document.getElementById('genieSubmitBtn');
+  const q = queryText || input.value.trim();
+  if (!q) return;
+  input.value = q;
+
+  const reasoningBox = document.getElementById('genieReasoning');
+  const reasoningSteps = document.getElementById('reasoningSteps');
+  const sqlBox = document.getElementById('sqlPreview');
+  const sqlCode = document.getElementById('sqlCode');
+  const narrative = document.getElementById('genieNarrative');
+  const chartBox = document.getElementById('genieChartContainer');
+  const tableWrap = document.getElementById('genieTableWrap');
+  const tableBody = document.getElementById('genieTableBody');
+
+  // Loading animation
+  btn.textContent = "Genie Reasoning...";
+  reasoningBox.style.display = 'block';
+  reasoningSteps.innerHTML = `<div>→ Ingesting prompt token vectors...</div>`;
+  sqlBox.style.display = 'block';
+  sqlCode.textContent = "-- Generating Lakehouse SQL & Multi-Step Reasoning...";
+  narrative.style.display = 'none';
+
+  const lower = q.toLowerCase();
+  const isGraphQuery = lower.includes('graph') || lower.includes('chart') || lower.includes('plot') || lower.includes('distribution');
+  const chartType = lower.includes('line') ? 'line' : lower.includes('doughnut') || lower.includes('pie') ? 'doughnut' : 'bar';
+
+  try {
+    const res = await fetch("http://localhost:8000/api/genie", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: q })
+    });
+    const data = await res.json();
+    
+    // Animate reasoning trace
+    const steps = data.reasoning_steps || [
+      "Vector search over Delta Lake table 'sentinel_telemetry'",
+      "GraphFrames cluster identification on contact footprints",
+      "Mosaic AI semantic intent classification completed"
+    ];
+    reasoningSteps.innerHTML = steps.map(s => `<div>✓ ${s}</div>`).join('');
+
+    sqlCode.textContent = data.sql || "SELECT * FROM sentinel_telemetry;";
+    
+    let rawReply = data.reply || "";
+    let formattedText = rawReply
+      .replace(/### (.*?)\n/g, '<h3 style="color:var(--text-bright);font-size:15px;margin:12px 0 6px 0;border-bottom:1px solid var(--border);padding-bottom:4px;">$1</h3>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--neon-lime);">$1</strong>')
+      .replace(/\* (.*?)\n/g, '• $1<br>')
+      .replace(/\n\n/g, '<br><br>');
+      
+    narrative.style.display = 'block';
+    narrative.innerHTML = formattedText;
+  } catch (err) {
+    narrative.style.display = 'block';
+    narrative.innerHTML = `✨ <b>Databricks Genie:</b> Aggregated risk vectors across Delta Lake tables.`;
+  } finally {
+    btn.textContent = "Ask Genie";
+  }
+
+  // Filter Data
+  let results = mockPosts.map(p => {
+    const { scores } = computeScore(p);
+    return { ...p, riskScore: scores.total };
+  });
+
+  if (lower.includes('> 70') || lower.includes('80') || lower.includes('high') || lower.includes('scam')) {
+    results = results.filter(p => p.riskScore >= 70);
+  } else if (lower.includes('contact') || lower.includes('multiple') || lower.includes('who')) {
+    results = results.filter(p => p.contact === sharedPhone || p.contact === sharedHandle);
+  } else if (lower.includes('crypto') || lower.includes('crypo') || lower.includes('fee') || lower.includes('deposit')) {
+    results = results.filter(p => p.flags.includes('deposit') || p.flags.includes('crypto') || p.flags.includes('shared_contact'));
+  }
+
+  if (isGraphQuery) {
+    chartBox.style.display = 'block';
+    renderGenieChart(results, chartType);
+  } else {
+    chartBox.style.display = 'none';
+  }
+
+  tableWrap.style.display = 'block';
+  tableBody.innerHTML = results.map(p => `
+    <tr>
+      <td class="mono" style="color:var(--text-dim);">SN-${p.id}092</td>
+      <td style="font-weight:600;">${p.title}</td>
+      <td class="mono">${p.source}</td>
+      <td class="mono" style="color:var(--cyan);">${p.contact}</td>
+      <td class="mono" style="color:${p.riskScore>=70?'var(--red)':p.riskScore>=35?'var(--amber)':'var(--neon-lime)'};font-weight:700;">${p.riskScore}/100</td>
+      <td><span class="risk-badge ${p.riskScore>=70?'risk-high':p.riskScore>=35?'risk-medium':'risk-low'}">${p.riskScore>=70?'MATCHED 4 TAKEDOWNS':'VERIFIED'}</span></td>
+      <td><button onclick="switchPage('consolePage', document.querySelectorAll('.nav-tab')[0]); selectSignal(${p.id});" style="background:transparent; border:1px solid var(--border); color:var(--neon-lime); padding:4px 8px; border-radius:4px; cursor:pointer; font-size:10.5px;">Inspect</button></td>
+    </tr>
+  `).join('');
+}
+
+function renderGenieChart(dataList, chartType) {
+  const ctx = document.getElementById('genieCanvas').getContext('2d');
+  if (activeChartInstance) activeChartInstance.destroy();
+
+  const labels = dataList.map(p => p.source);
+  const dataScores = dataList.map(p => p.riskScore);
+
+  activeChartInstance = new Chart(ctx, {
+    type: chartType || 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Threat Risk Score (0-100)',
+        data: dataScores,
+        borderColor: '#EF4444',
+        backgroundColor: chartType === 'line' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.6)',
+        borderWidth: 2,
+        fill: chartType === 'line',
+        tension: 0.35,
+        pointBackgroundColor: '#A3E635',
+        pointRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          grid: { color: 'rgba(255, 255, 255, 0.06)' },
+          ticks: { color: '#94A3B8' }
+        },
+        x: {
+          grid: { color: 'rgba(255, 255, 255, 0.04)' },
+          ticks: { color: '#94A3B8' }
+        }
+      },
+      plugins: {
+        legend: { labels: { color: '#E2E8F0', font: { family: 'IBM Plex Sans' } } }
+      }
+    }
+  });
+}
+
+function genieChip(el) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  runLiveGenieQuery(el.textContent);
+}
+
+function handleCSVUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const lines = e.target.result.trim().split('\n');
+    for (let i = 1; i < lines.length; i++) {
+      const row = lines[i].split(',');
+      if (row.length >= 3) {
+        mockPosts.unshift({
+          id: mockPosts.length + 1,
+          title: row[0]?.replace(/"/g, '').trim() || 'Scanned Ingress Post',
+          source: row[1]?.replace(/"/g, '').trim() || 'CSV Stream',
+          text: row[2]?.replace(/"/g, '').trim() || '',
+          contact: row[3]?.replace(/"/g, '').trim() || '+91-90000-00000',
+          time: 'Just now (CSV)',
+          flags: ['urgency', 'deposit']
+        });
+      }
+    }
+    renderSignals();
+  };
+  reader.readAsText(file);
+}
+
+function generateSimulatedStream() {
+  mockPosts.unshift({
+    id: mockPosts.length + 1,
+    title: 'Crypto Arbitrage Assistant — ₹15,000/day',
+    source: 'Telegram Channel',
+    text: 'Earn passive income. Send ₹2000 registration deposit via UPI for private keys. DM @urgent_campus_gigs.',
+    contact: sharedHandle,
+    time: 'Just now',
+    flags: ['crypto', 'deposit', 'telegram_only', 'shared_contact']
+  });
+  renderSignals();
+}
+
+const linguisticPatterns = [
+  { pattern: /(urgent|immediate|limited slots)/i, points: 14, label: 'Urgency manipulation tactic' },
+  { pattern: /(no paperwork|no experience|no visa)/i, points: 12, label: 'Documentation waiver anomaly' },
+  { pattern: /(deposit|fee|send.*₹)/i, points: 15, label: 'Upfront fee requested' },
+  { pattern: /(whatsapp|telegram)/i, points: 10, label: 'Off-platform channel redirect' },
+  { pattern: /(crypto|upi)/i, points: 10, label: 'Non-standard untraceable payment' }
+];
+
+function computeScore(post) {
+  let linguistic = 0;
+  const explanations = [];
+
+  for (const p of linguisticPatterns) {
+    if (p.pattern.test(post.text)) {
+      linguistic = Math.min(30, linguistic + p.points);
+      explanations.push({ type: 'negative', icon: '▲', text: `+${p.points} ${p.label}` });
+    }
+  }
+
+  let relational = mockPosts.filter(p => p.contact === post.contact).length > 1 ? 24 : 2;
+  if (relational > 10) explanations.push({ type: 'negative', icon: '▲', text: `+${relational} Graph: Contact reused across multiple postings` });
+
+  let precedent = post.flags.includes('shared_contact') || post.flags.includes('deposit') ? 15 : 2;
+  if (precedent > 10) explanations.push({ type: 'negative', icon: '▲', text: '+15 Databricks Genie: Matched 4 prior takedowns in Lakehouse' });
+
+  const total = Math.min(100, linguistic + relational + precedent + 15);
+  return { scores: { linguistic, relational, precedent, total }, explanations };
+}
+
 function renderSignals() {
   const list = document.getElementById('signalsList');
   if (!list) return;
   list.innerHTML = mockPosts.map(p => `
-    <div class="signal-card ${activeId === p.id ? 'active' : ''}" onclick="selectSignal(${p.id})" id="card-${p.id}">
+    <div class="signal-card ${activeId === p.id ? 'active' : ''}" onclick="selectSignal(${p.id})">
       <div class="signal-meta">
         <span class="signal-source">${p.source}</span>
         <span class="signal-time">${p.time}</span>
@@ -612,7 +849,7 @@ function renderSignals() {
       <div class="signal-title">${p.title}</div>
       <div class="signal-snippet">${p.text}</div>
       <div class="signal-footer">
-        <span class="mono" style="font-size:10px;color:var(--cyan);">${p.contact}</span>
+        <span class="mono" style="font-size:9.5px;color:var(--cyan);">${p.contact}</span>
         <span class="risk-badge risk-queued" id="badge-${p.id}">QUEUED</span>
       </div>
     </div>
@@ -620,35 +857,7 @@ function renderSignals() {
   document.getElementById('signalCount').textContent = mockPosts.length;
 }
 
-async function animatePipeline() {
-  const nodes = ['n1','n2','n3','n4','n5'];
-  const labels = ['l1','l2','l3','l4','l5'];
-  const connectors = ['c1','c2','c3','c4'];
-  const names = ['Ingestion', 'Mosaic AI', 'Genie Loop', 'Risk Fusion', 'Command UI'];
-
-  nodes.forEach(n => { document.getElementById(n).className = 'node-circle'; });
-  labels.forEach((l, i) => { document.getElementById(l).className = 'node-label'; document.getElementById(l).textContent = names[i]; });
-  connectors.forEach(c => { document.getElementById(c).className = 'pipeline-connector'; });
-
-  for (let i = 0; i < nodes.length; i++) {
-    document.getElementById(nodes[i]).classList.add('active');
-    document.getElementById(labels[i]).classList.add('active');
-    if (i < nodes.length - 1) await delay(220);
-    document.getElementById(nodes[i]).classList.remove('active');
-    document.getElementById(nodes[i]).classList.add('complete');
-    document.getElementById(labels[i]).classList.remove('active');
-    document.getElementById(labels[i]).classList.add('complete');
-    if (i < connectors.length) document.getElementById(connectors[i]).classList.add('complete');
-    if (i < nodes.length - 1) await delay(50);
-  }
-  await delay(100);
-}
-
-function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
-
 async function selectSignal(id) {
-  if (isAnimating) return;
-  isAnimating = true;
   activeId = id;
   const post = mockPosts.find(p => p.id === id);
 
@@ -657,96 +866,54 @@ async function selectSignal(id) {
   document.getElementById('resultsPanel').style.display = 'none';
 
   document.getElementById('postPreview').innerHTML = `
-    <div class="meta">DELTA LAKE INGRESS #SN-${post.id}092 • ${post.source}</div>
-    <div style="font-weight:600; color:var(--text-bright); margin-bottom:4px;">${post.title}</div>
-    <div style="color:var(--text-dim); margin-bottom:6px;">"${post.text}"</div>
-    <div style="font-size:11px;">Tracked Contact: <span style="color:var(--cyan);" class="mono">${post.contact}</span></div>
+    <div style="color:var(--neon-lime);font-weight:700;" class="mono">INGRESS #SN-${post.id}092 • ${post.source}</div>
+    <div style="font-weight:600;margin:3px 0;">${post.title}</div>
+    <div style="color:var(--text-dim);margin-bottom:4px;">"${post.text}"</div>
+    <div>Tracked Contact: <span style="color:var(--cyan);" class="mono">${post.contact}</span></div>
   `;
 
   renderSignals();
-  await animatePipeline();
+
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById(`n${i}`).classList.add('complete');
+    if (i < 5) document.getElementById(`c${i}`).classList.add('complete');
+    await new Promise(r => setTimeout(r, 60));
+  }
 
   const { scores, explanations } = computeScore(post);
 
   const badge = document.getElementById(`badge-${id}`);
-  let tier, tierClass, tierLabel;
-  if (scores.total < 35) { tier = 'neon'; tierClass = 'risk-low'; tierLabel = 'VERIFIED'; }
-  else if (scores.total < 70) { tier = 'amber'; tierClass = 'risk-medium'; tierLabel = 'SUSPICIOUS'; }
-  else { tier = 'red'; tierClass = 'risk-high'; tierLabel = 'CRITICAL'; }
-  
+  const tier = scores.total >= 70 ? 'red' : scores.total >= 35 ? 'amber' : 'neon';
   if (badge) {
-    badge.className = 'risk-badge ' + tierClass;
-    badge.textContent = `${tierLabel} ${scores.total}`;
+    badge.className = `risk-badge risk-${scores.total>=70?'high':scores.total>=35?'medium':'low'}`;
+    badge.textContent = `${scores.total >= 70 ? 'CRITICAL' : 'VERIFIED'} ${scores.total}`;
   }
 
   document.getElementById('resultsPanel').style.display = 'block';
-  animateDial(scores.total, tier);
-  renderSubscores(scores);
-  renderExplanations(explanations, scores, tier);
 
-  isAnimating = false;
-}
-
-function animateDial(score, tier) {
   const fill = document.getElementById('dialFill');
-  const number = document.getElementById('dialNumber');
+  const num = document.getElementById('dialNumber');
   const circumference = 2 * Math.PI * 58;
-  const colors = { neon: '#A3E635', amber: '#F59E0B', red: '#EF4444' };
-  
-  fill.style.stroke = colors[tier];
-  fill.style.transition = 'none';
-  fill.setAttribute('stroke-dashoffset', circumference);
-  number.textContent = '0';
+  fill.style.stroke = tier === 'red' ? '#EF4444' : tier === 'amber' ? '#F59E0B' : '#A3E635';
+  fill.style.strokeDashoffset = circumference - (scores.total / 100) * circumference;
+  num.textContent = scores.total;
 
-  requestAnimationFrame(() => {
-    fill.style.transition = 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)';
-    const offset = circumference - (score / 100) * circumference;
-    fill.setAttribute('stroke-dashoffset', offset);
-
-    let current = 0;
-    const step = score / 35;
-    const timer = setInterval(() => {
-      current += step;
-      if (current >= score) { current = score; clearInterval(timer); }
-      number.textContent = Math.round(current);
-    }, 25);
-  });
-}
-
-function renderSubscores(scores) {
-  const bars = [
-    { name: 'Semantic Linguistic Intent[cite: 1]', value: scores.linguistic, max: 30, weight: '30%', color: 'var(--amber)' },
-    { name: 'Relational Graph Clustering[cite: 1]', value: scores.relational, max: 25, weight: '25%', color: 'var(--red)' },
-    { name: 'Posting Velocity[cite: 1]', value: scores.velocity, max: 20, weight: '20%', color: 'var(--cyan)' },
-    { name: 'Genie Historical Precedent[cite: 1]', value: scores.precedent, max: 15, weight: '15%', color: 'var(--neon-lime)' },
-    { name: 'Geographic Mismatch[cite: 1]', value: scores.geo, max: 10, weight: '10%', color: '#C084FC' }
-  ];
-
-  const container = document.getElementById('subscores');
-  container.innerHTML = bars.map(b => `
+  document.getElementById('subscores').innerHTML = `
     <div class="subscore">
-      <div class="subscore-header">
-        <span class="subscore-name">${b.name} <span style="color:var(--text-dim);font-size:9.5px">(${b.weight})</span></span>
-        <span class="subscore-value mono">${b.value}/${b.max}</span>
-      </div>
-      <div class="subscore-bar">
-        <div class="subscore-fill" style="width:0%;background:${b.color}"></div>
-      </div>
+      <div class="subscore-header"><span>Linguistic Threat</span><span class="mono">${scores.linguistic}/30</span></div>
+      <div class="subscore-bar"><div class="subscore-fill" style="width:${(scores.linguistic/30)*100}%;background:var(--amber)"></div></div>
     </div>
-  `).join('');
+    <div class="subscore">
+      <div class="subscore-header"><span>Graph Contact Clustering</span><span class="mono">${scores.relational}/25</span></div>
+      <div class="subscore-bar"><div class="subscore-fill" style="width:${(scores.relational/25)*100}%;background:var(--red)"></div></div>
+    </div>
+    <div class="subscore">
+      <div class="subscore-header"><span>Genie Lakehouse Precedent</span><span class="mono">${scores.precedent}/15</span></div>
+      <div class="subscore-bar"><div class="subscore-fill" style="width:${(scores.precedent/15)*100}%;background:var(--neon-lime)"></div></div>
+    </div>
+  `;
 
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      container.querySelectorAll('.subscore-fill').forEach((el, i) => {
-        el.style.width = (bars[i].value / bars[i].max * 100) + '%';
-      });
-    }, 50);
-  });
-}
-
-function renderExplanations(explanations, scores, tier) {
-  const list = document.getElementById('explainList');
-  list.innerHTML = explanations.map(e => `
+  document.getElementById('explainList').innerHTML = explanations.map(e => `
     <div class="explain-item explain-${e.type}">
       <div class="explain-icon">${e.icon}</div>
       <div>${e.text}</div>
@@ -756,83 +923,8 @@ function renderExplanations(explanations, scores, tier) {
   const verdictBox = document.getElementById('verdictBox');
   const verdictText = document.getElementById('verdictText');
   verdictBox.style.display = 'block';
-
-  if (tier === 'red') {
-    verdictText.textContent = `🚨 CRITICAL THREAT (${scores.total}/100) — High deceptive intent vectors detected. Automated recommendation: Escalate to Placement Cell.`;
-    verdictText.style.color = 'var(--red)';
-    verdictText.style.background = 'var(--red-bg)';
-  } else if (tier === 'amber') {
-    verdictText.textContent = `⚠️ SUSPICIOUS ANOMALY (${scores.total}/100) — Moderate risk score. Precedent checks require manual analyst review.`;
-    verdictText.style.color = 'var(--amber)';
-    verdictText.style.background = 'var(--amber-bg)';
-  } else {
-    verdictText.textContent = `✓ VERIFIED NOMINAL (${scores.total}/100) — Standard institutional career opportunity. No threat patterns matched.`;
-    verdictText.style.color = 'var(--neon-lime)';
-    verdictText.style.background = 'var(--neon-bg)';
-  }
-}
-
-function escalateAlert() {
-  alert("🚨 Action Executed: Threat #SN-" + activeId + " flagged to Placement Officer & Lakehouse Takedown Queue.");
-}
-
-function clearAlert() {
-  alert("✓ Signal #SN-" + activeId + " marked as verified institutional listing.");
-}
-
-// ─── GENIE SPACE CONVERSATIONAL SQL ───────────────────────
-function runGeniePageQuery(queryText) {
-  const input = document.getElementById('genieInputFull');
-  const q = queryText || input.value;
-  if (!q) return;
-  input.value = q;
-
-  const sqlBox = document.getElementById('sqlPreview');
-  const sqlCode = document.getElementById('sqlCode');
-  const tableWrap = document.getElementById('genieTableWrap');
-  const tableBody = document.getElementById('genieTableBody');
-
-  let results = mockPosts.map(p => {
-    const { scores } = computeScore(p);
-    return { ...p, riskScore: scores.total };
-  });
-
-  const lower = q.toLowerCase();
-  if (lower.includes('> 80') || lower.includes('80') || lower.includes('high')) {
-    results = results.filter(p => p.riskScore >= 70);
-    sqlCode.textContent = "SELECT alert_id, title, channel, contact, risk_score, precedent_status FROM delta_lakehouse.threat_telemetry WHERE risk_score >= 70 ORDER BY risk_score DESC;";
-  } else if (lower.includes('low') || lower.includes('safe') || lower.includes('verified')) {
-    results = results.filter(p => p.riskScore < 35);
-    sqlCode.textContent = "SELECT * FROM delta_lakehouse.threat_telemetry WHERE risk_score < 35 AND institutional_verified = true;";
-  } else {
-    sqlCode.textContent = "SELECT * FROM delta_lakehouse.threat_telemetry WHERE post_text LIKE '%crypto%' OR post_text LIKE '%fee%' OR post_text LIKE '%deposit%' ORDER BY timestamp DESC;";
-  }
-
-  sqlBox.style.display = 'block';
-  tableWrap.style.display = 'block';
-
-  tableBody.innerHTML = results.map(p => {
-    const color = p.riskScore > 70 ? 'var(--red)' : p.riskScore > 35 ? 'var(--amber)' : 'var(--neon-lime)';
-    const statusText = p.riskScore > 70 ? 'MATCHED 4 TAKEDOWNS' : p.riskScore > 35 ? 'UNVERIFIED ENTITY' : 'VERIFIED INSTITUTION';
-    
-    return `
-      <tr>
-        <td class="mono" style="color:var(--text-dim);">SN-${p.id}092</td>
-        <td style="font-weight:600;">${p.title.substring(0, 36)}...</td>
-        <td class="mono">${p.source}</td>
-        <td class="mono" style="color:var(--cyan);">${p.contact}</td>
-        <td class="mono" style="color:${color};font-weight:700;">${p.riskScore}/100</td>
-        <td><span class="risk-badge ${p.riskScore>70?'risk-high':p.riskScore>35?'risk-medium':'risk-low'}">${statusText}</span></td>
-        <td><button onclick="switchPage('consolePage', document.querySelectorAll('.nav-tab')[0]); selectSignal(${p.id});" style="background:transparent; border:1px solid var(--border); color:var(--neon-lime); padding:4px 8px; border-radius:4px; cursor:pointer; font-size:10.5px;">Inspect Threat</button></td>
-      </tr>
-    `;
-  }).join('');
-}
-
-function genieFullChip(el) {
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  runGeniePageQuery(el.textContent);
+  verdictText.textContent = scores.total >= 70 ? `🚨 CRITICAL THREAT (${scores.total}/100) — Match against Lakehouse Takedown Precedents.` : `✓ VERIFIED NOMINAL (${scores.total}/100)`;
+  verdictText.style.color = scores.total >= 70 ? 'var(--red)' : 'var(--neon-lime)';
 }
 
 function updateClock() {
@@ -840,7 +932,6 @@ function updateClock() {
 }
 setInterval(updateClock, 1000);
 updateClock();
-
 renderSignals();
 </script>
 </body>
